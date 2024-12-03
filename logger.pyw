@@ -35,7 +35,6 @@ if id == "":
 
 session = collection.find_one({"_id": id})
 collection.update_one({"_id": id}, {"$set": {"session" : session["session"]+1 }})
-print(session["session"])
 
 def log(event):
     global id; global data
